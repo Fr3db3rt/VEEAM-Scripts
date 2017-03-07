@@ -1,21 +1,23 @@
 @echo off
-echo.
+echo start "VEEAM_PreJob" cmd /c PowerShell -NoProfile -ExecutionPolicy Bypass -Command -
 more +5 %0 | PowerShell -NoProfile -ExecutionPolicy Bypass -Command -
 exit /b
  
 Function Get-Test {
   param()
+  
   Begin{
-    <# 
-    Kommentarblock
-    #>
     Clear-Host
-    Write-Host -fore green "Starte PowerShell" 
-    #--------------------------------------------------------------------
-    # Add Veeam snap-in if required
+    Write-Host -fore green "Starte PowerShell..." 
+    <#--------------------------------------------------------------------
+    Add Veeam snap-in if required
+      #>
     If ((Get-PSSnapin -Name VeeamPSSnapin -ErrorAction SilentlyContinue) -eq $null) {
       Add-PSSnapin VeeamPSSnapin
       }
+    <#--------------------------------------------------------------------
+    Check presence if VEEAM PowerShell plugin is installed or not
+      #>
     If ((Get-PSSnapin -Name VeeamPSSnapin -ErrorAction SilentlyContinue) -eq $null) {
       [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms")
       $nl = [System.Environment]::NewLine + [System.Environment]::NewLine
@@ -27,10 +29,15 @@ Function Get-Test {
       [System.Windows.Forms.MessageBox]::Show($msg,"?error. " + $myInvocation.MyCommand.Name,"OK","Error")
       exit
       }
-    #--------------------------------------------------------------------
+    <#--------------------------------------------------------------------
+    Check Veeam Version (If VEEAM 9)
+      #>
+      If ((Get-PSSnapin VeeamPSSnapin).Version.Major -ne 9) {
+      exit
+      }
     }
+
   Process{
-    gps power*,cmd*
     #--------------------------------------------------------------------
     # Main Procedures
     Write-Host "********************************************************************************"
@@ -38,43 +45,33 @@ Function Get-Test {
     Write-Host "********************************************************************************`n"
     #--------------------------------------------------------------------
 
-    #--------------------------------------------------------------------
-    # Check Veeam Version (If VEEAM 9)
-    If ((Get-PSSnapin VeeamPSSnapin).Version.Major -eq 9) {
+    write-host "`n`n`n`n`n`n`n`n`n`nTape Sever identifizieren ..."
+    Get-VBRLocalhost | Get-VBRTapeServer
+    
+    write-host "`n`n`n`n`n`n`n`n`n`nTape Library einlesen ..."
+    Get-VBRTapeServer | Get-VBRTapeLibrary
 
-      write-host "Tape Library einlesen ..."
-      $library = Get-VBRTapeLibrary
-      write-host "VBRTapeLibrary = $library"
+    write-host "`n`n`n`n`n`n`n`n`n`n...inventarisieren und auf Abschluss warten ..."
+    Get-VBRTapeLibrary | Start-VBRTapeInventory -wait
 
-      write-host "Drive identifizieren ..."
-      $drive = Get-VBRTapeDrive
-      write-host "VBRTapeDrive = $drive"
+    write-host "`n`n`n`n`n`n`n`n`n`nAktuelles Tape Drive identifizieren ..."
+    $drive = Get-VBRTapeDrive
 
-      write-host "Inventarisierung starten und auf Abschluss warten ..."
-      Start-VBRTapeInventory -Library $library -wait
+    write-host "`n`n`n`n`n`n`n`n`n`n...und Katalog des aktuellen Bandes einlesen und auf Abschluss warten."
+    Get-VBRTapeMedium -Drive $drive | Start-VBRTapeCatalog -Wait
 
-      write-host "aktuelles Tape identifizieren ..."
-      $tape = Get-VBRTapeMedium -Drive $drive
-      write-host "VBRTapeMedium = $tape"
+    write-host "`n`n`n`n`n`n`n`n`n`nAktuelles Medium in den Pool 'FREE' schieben ..."
+    Get-VBRTapeMedium -Drive $drive | Move-VBRTapeMedium -MediaPool "Free" -Confirm:$false
 
-      write-host "Katalog des aktuellen Bandes einlesen und auf Abschluss warten ..."
-      Start-VBRTapeCatalog -Medium $tape -wait
-      write-host "Fertig"
+    write-host "`n`n`n`n`n`n`n`n`n`n... und loeschen und auf Abschluss warten ..."
+    Get-VBRTapeMedium -Drive $drive | Erase-VBRTapeMedium -wait -Confirm:$false
+    }
 
-      write-host "aktuelles Medium in den Pool 'FREE' schieben ..."
-      Move-VBRTapeMedium -Medium $tape -MediaPool "Free" -Confirm:$false
-      write-host "Fertig"
-
-      write-host "aktuelles Medium loeschen und auf Abschluss warten ..."
-      Erase-VBRTapeMedium -Medium $tape -wait -Confirm:$false
-      write-host "Fertig"
-      write-host "Script beendet"
-      }
-  }
   End{
-   Write-Host -fore green  "`nBeende PowerShell"
+    Write-Host -fore green  "`nBeende PowerShell"
+    }
   }
-}
+
 Get-Test
  
 exit
