@@ -1,8 +1,8 @@
 @echo off
-echo start "VEEAM_PreJob" cmd /c PowerShell -NoProfile -ExecutionPolicy Bypass -Command -
+echo start "VEEAM_Pre-job" cmd /c PowerShell -NoProfile -ExecutionPolicy Bypass -Command -
 more +5 %0 | PowerShell -NoProfile -ExecutionPolicy Bypass -Command -
 exit /b
- 
+
 Function Get-Test {
   param()
   
