@@ -1,0 +1,2 @@
+@start "Veeam_Tape_Rewind" cmd /c PowerShell -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command "& {(Add-PSSnapin VeeamPSSnapin); (Get-VBRTapeLibrary | Start-VBRTapeInventory)}
+
