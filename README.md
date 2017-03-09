@@ -5,4 +5,9 @@ Todo
 
 - Requirements
 
+Routines: 
+- Get VEEAM Version
+- Get VEEAM SubVersion
+- Get VEEAM Release#
+
 
