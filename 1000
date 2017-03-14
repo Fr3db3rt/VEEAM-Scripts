@@ -1,0 +1,106 @@
+<#
+ 
+.SYNOPSIS
+    Update Veeam Backup Job Details
+ 
+.DESCRIPTION
+    This script will adjust settings across all Veeam backup jobs.
+    Individual settings can be added/removed as needed.
+ 
+.NOTES
+    Author: Shawn Masterson
+    Created: December 2013
+    Version: 1.0
+     
+    REQUIREMENTS
+    Intended to be run direct on the VBR server with Veeam Powershell addin installed
+    Powershell v2 or better
+    Veeam Backup and Replication v7
+ 
+.EXAMPLE
+    .\VeeamUpdateJobs.ps1
+     
+.DISCLAIMER:
+    There is very little error catching built into this script
+    USE AT YOUR OWN RISK!
+ 
+#>
+ 
+ 
+ 
+#--------------------------------------------------------------------
+# Parameters
+ 
+ 
+#--------------------------------------------------------------------
+# User Defined Variables
+ 
+# Enable deduplication ($true/$false)
+$dedupe = $true
+# Compression Level (Auto=1,None=0,Dedupe=4,Optimal=5,High=6,Extreme=9)
+$complvl = 5
+# Block Size (KbBlockSize256/WAN Target=0,KbBlockSize512/LAN Target=1,KbBlockSize1024/Local Target=3,
+# KbBlockSize2048=4,KbBlockSize4096=5,KbBlockSize8192/Local Target(16TB+ Files)=6,Auto=7)
+$blocksize = 1
+# Enable Integrity Check
+$integcheck = $true
+# Remove deleted VMs ($true/$false)
+$removedeleted = $true
+# Retain Deleted VMs (Days)
+$retaindeleted = 14
+ 
+#--------------------------------------------------------------------
+# Static Variables
+ 
+$scriptName = "VeeamUpdateJobs"
+$scriptVer = "1.0"
+$starttime = Get-Date -uformat "%m-%d-%Y %I:%M:%S"
+ 
+#--------------------------------------------------------------------
+# Load Snap-ins
+ 
+# Add Veeam snap-in if required
+If ((Get-PSSnapin -Name VeeamPSSnapin -ErrorAction SilentlyContinue) -eq $null) {add-pssnapin VeeamPSSnapin}
+ 
+#--------------------------------------------------------------------
+# Functions
+ 
+ 
+ 
+#--------------------------------------------------------------------
+# Main Procedures
+ 
+Clear-Host
+Write-Host "********************************************************************************"
+Write-Host "$scriptName`tVer:$scriptVer`t`t`tStart Time:`t$starttime"
+Write-Host "********************************************************************************`n"
+ 
+# Get Backup Jobs
+$jobs = Get-VBRJob | ?{$_.JobType -eq "Backup"}
+ 
+# Loop through each job updating options
+foreach ($job in $jobs) {
+    Write-Host "Setting job options on"$job.Name -ForegroundColor Yellow
+    $job | Set-VBRJobAdvancedStorageOptions -EnableDeduplication $dedupe -CompressionLevel $complvl -StorageBlockSize $blocksize | Out-Null
+    $job | Set-VBRJobAdvancedOptions -EnableIntegrityChecks $integcheck -RetainDays $retaindeleted | Out-Null
+    $jOptions = Get-VBRJobOptions $job
+    $jOptions.BackupStorageOptions.EnableDeletedVmDataRetention = $removedeleted
+    $job | Set-VBRJobOptions -Options $jOptions | Out-Null
+}
+ 
+#--------------------------------------------------------------------
+# Outputs
+ 
+Write-Host "`nProcessing Complete" -ForegroundColor Yellow
+ 
+ 
+$finishtime = Get-Date -uformat "%m-%d-%Y %I:%M:%S"
+Write-Host "`n`n"
+Write-Host "********************************************************************************"
+Write-Host "$scriptName`t`t`t`tFinish Time:`t$finishtime"
+Write-Host "********************************************************************************"
+ 
+# Prompt to exit script - This leaves PS window open when run via right-click
+Write-Host "`n`n"
+Write-Host "Press any key to continue ..." -foregroundcolor Gray
+$x = $host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
