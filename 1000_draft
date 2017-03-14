@@ -1,12 +1,9 @@
 <#
- 
 .SYNOPSIS
-    Update Veeam Backup Job Details
- 
+    Update Veeam Backup Job Details 
 .DESCRIPTION
     This script will adjust settings across all Veeam backup jobs.
     Individual settings can be added/removed as needed.
- 
 .NOTES
     Author: Shawn Masterson
     Created: December 2013
@@ -16,38 +13,31 @@
     Intended to be run direct on the VBR server with Veeam Powershell addin installed
     Powershell v2 or better
     Veeam Backup and Replication v7
- 
 .EXAMPLE
     .\VeeamUpdateJobs.ps1
-     
 .DISCLAIMER:
     There is very little error catching built into this script
-    USE AT YOUR OWN RISK!
- 
+    USE AT YOUR OWN RISK! 
 #>
- 
- 
- 
+
 #--------------------------------------------------------------------
 # Parameters
- 
- 
 #--------------------------------------------------------------------
-# User Defined Variables
- 
+
+# User Defined Variables: 
 # Enable deduplication ($true/$false)
 $dedupe = $true
 # Compression Level (Auto=1,None=0,Dedupe=4,Optimal=5,High=6,Extreme=9)
 $complvl = 5
 # Block Size (KbBlockSize256/WAN Target=0,KbBlockSize512/LAN Target=1,KbBlockSize1024/Local Target=3,
 # KbBlockSize2048=4,KbBlockSize4096=5,KbBlockSize8192/Local Target(16TB+ Files)=6,Auto=7)
-$blocksize = 1
+$blocksize = 3
 # Enable Integrity Check
 $integcheck = $true
 # Remove deleted VMs ($true/$false)
 $removedeleted = $true
 # Retain Deleted VMs (Days)
-$retaindeleted = 14
+$retaindeleted = 60
  
 #--------------------------------------------------------------------
 # Static Variables
