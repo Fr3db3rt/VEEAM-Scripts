@@ -1,49 +1,36 @@
 <#
-
 .SYNOPSIS
 	Gather Veeam Backup Job Details
-
 .DESCRIPTION
 	This script will create a csv file that contains details about each Veeam backup job.
 	This is helpful when you want to ensure consistency when, for example multiple people are creating multiple jobs.
 	Also good for documenting your backup job settings.
 	Once in Excel, you can filter and twist the data anyway that's helpful.
-
 .PARAMETER path
 	Path to the csv file to create, including file name
-
 .NOTES
     Author: Shawn Masterson
     Created: December 2013
     Version: 1.0
-
 	INSPIRATION
 	Luca Dell'Oca
 	http://www.virtualtothecore.com/en/check-multiple-job-settings-in-veeam-backup-replication-with-powershell/
-
     REQUIREMENTS
 	Intended to be run direct on the VBR server with Veeam Powershell addin installed
 	Powershell v2 or better
 	Veeam Backup and Replication v7
-
 .EXAMPLE
 	.\VeeamJobDetail.ps1
-
 .EXAMPLE
 	.\VeeamJobDetail.ps1 -path c:\temp\jobdetails.csv
-
 .DISCLAIMER:
     There is very little error catching built into this script
     USE AT YOUR OWN RISK!
-
 #>
 
 #--------------------------------------------------------------------
 # Parameters
-param (
-	[Parameter(mandatory=$false)] [String]$path
-
-)
+param ([Parameter(mandatory=$false)] [String]$path)
 
 #--------------------------------------------------------------------
 # User Defined Variables
